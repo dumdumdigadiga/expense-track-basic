@@ -381,15 +381,15 @@
 </head>
 <body>
     <div class="container">
-        <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.15)); border: 1px solid rgba(139, 92, 246, 0.3);">
-            <h1 style="color: #8b5cf6; font-size: 32px; margin-bottom: 8px;">🙏 Welcome, Ashutosh Bhai!! 🙏</h1>
-            <p style="color: #64748b; font-size: 16px;">Track your expenses smartly</p>
+        <!-- App Header -->
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 12px 24px; border-radius: 20px; margin-bottom: 12px;">
+                <h1 style="color: white; font-size: 24px; margin: 0; letter-spacing: -0.5px;">💰 ExpenseTracker</h1>
+            </div>
+            <p style="color: #64748b; font-size: 13px; margin: 0;">Smart budget management for Ashutosh</p>
         </div>
 
         <div class="card">
-            <h1>💰 Expense Tracker</h1>
-            <p class="subtitle">Manage your monthly budget</p>
-
             <div class="month-selector" id="monthSelector"></div>
 
             <div class="budget-display">
@@ -455,7 +455,7 @@
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 16px; color: #333;">Add Expense</h2>
+            <h2 style="margin-bottom: 16px; color: #1e293b; font-size: 18px; letter-spacing: -0.3px;">➕ Add Expense</h2>
             
             <div class="input-group">
                 <label for="expenseDescription">Description</label>
@@ -471,15 +471,45 @@
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 16px; color: #333;">Savings History</h2>
+            <h2 style="margin-bottom: 16px; color: #1e293b; font-size: 18px; letter-spacing: -0.3px;">📈 Savings History</h2>
             <div id="savingsHistory"></div>
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 16px; color: #333;">Recent Expenses</h2>
+            <h2 style="margin-bottom: 16px; color: #1e293b; font-size: 18px; letter-spacing: -0.3px;">💾 Backup & Restore</h2>
+            <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
+                Export your data to backup all months. Import to restore data on a new device.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="exportData()" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    📥 Export Data
+                </button>
+                <button onclick="document.getElementById('importFile').click()" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                    📤 Import Data
+                </button>
+            </div>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px; color: #1e293b; font-size: 18px; letter-spacing: -0.3px;">📝 Recent Expenses</h2>
             <div class="expense-list" id="expenseList">
                 <div class="empty-state">No expenses yet</div>
             </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1)); border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="font-size: 48px; margin-bottom: 12px;">⚽</div>
+            <h3 style="color: #dc2626; font-size: 18px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px;">
+                Designed by Ashutosh
+            </h3>
+            <p style="color: #64748b; font-size: 13px; line-height: 1.6; margin-bottom: 8px;">
+                Proudly supporting <span style="color: #dc2626; font-weight: 700;">Arsenal FC</span> 🔴⚪
+            </p>
+            <p style="color: #94a3b8; font-size: 11px; font-style: italic;">
+                "Victoria Concordia Crescit" - Victory Through Harmony
+            </p>
         </div>
     </div>
 
@@ -548,29 +578,156 @@
             loadData();
         }
 
-        // Load month selector
+        // Load month selector - show only current month + dropdown for past
         function loadMonthSelector() {
             const selector = document.getElementById('monthSelector');
             selector.innerHTML = '';
 
-            // Get last 3 months
-            const months = [];
-            for (let i = 0; i < 3; i++) {
+            // Get all stored and recent month keys
+            const storedMonths = getAllStoredMonths();
+            
+            // Generate last 12 months including current
+            const allMonths = [];
+            for (let i = 0; i < 12; i++) {
                 const date = new Date();
                 date.setMonth(date.getMonth() - i);
-                months.push(getMonthKey(date));
-            }
-
-            months.forEach(month => {
-                const btn = document.createElement('button');
-                btn.className = 'month-btn';
-                btn.textContent = getMonthDisplay(month);
-                if (month === currentMonth) {
-                    btn.classList.add('active');
+                const monthKey = getMonthKey(date);
+                if (!allMonths.includes(monthKey)) {
+                    allMonths.push(monthKey);
                 }
-                btn.onclick = () => switchMonth(month);
-                selector.appendChild(btn);
+            }
+            
+            // Add any older stored months
+            storedMonths.forEach(month => {
+                if (!allMonths.includes(month)) {
+                    allMonths.push(month);
+                }
             });
+            
+            // Get the actual current month key (not the selected one)
+            const actualCurrentMonth = getMonthKey();
+
+            // Show current month button (always shows actual current month)
+            const currentBtn = document.createElement('button');
+            currentBtn.className = 'month-btn';
+            if (currentMonth === actualCurrentMonth) {
+                currentBtn.classList.add('active');
+            }
+            currentBtn.textContent = '📅 ' + getMonthDisplay(actualCurrentMonth);
+            currentBtn.style.flex = '2';
+            currentBtn.onclick = () => switchMonth(actualCurrentMonth);
+            selector.appendChild(currentBtn);
+            
+            // Create dropdown for past months
+            const dropdown = document.createElement('select');
+            dropdown.className = 'month-btn';
+            dropdown.style.cssText = 'flex: 1; cursor: pointer; font-size: 12px; padding: 12px 8px;';
+            
+            // If viewing a past month, show which one in dropdown
+            if (currentMonth !== actualCurrentMonth) {
+                dropdown.innerHTML = `<option value="">📂 ${getMonthDisplay(currentMonth)}</option>`;
+            } else {
+                dropdown.innerHTML = '<option value="">📂 Past Months</option>';
+            }
+            
+            allMonths.forEach((month, index) => {
+                if (month !== actualCurrentMonth) { // Exclude actual current month
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = getMonthDisplay(month);
+                    dropdown.appendChild(option);
+                }
+            });
+            
+            dropdown.onchange = (e) => {
+                if (e.target.value) {
+                    switchMonth(e.target.value);
+                }
+            };
+            
+            selector.appendChild(dropdown);
+        }
+
+        // Get all month keys that have stored data
+        function getAllStoredMonths() {
+            const months = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(STORAGE_PREFIX) && key !== MONTH_START_KEY) {
+                    const monthKey = key.replace(STORAGE_PREFIX, '');
+                    months.push(monthKey);
+                }
+            }
+            // Sort by date (newest first)
+            months.sort((a, b) => {
+                const [yearA, monthA, dayA] = a.split('-').map(Number);
+                const [yearB, monthB, dayB] = b.split('-').map(Number);
+                if (yearA !== yearB) return yearB - yearA;
+                if (monthA !== monthB) return monthB - monthA;
+                return (dayB || 1) - (dayA || 1);
+            });
+            return months;
+        }
+
+        // Show modal with all months
+        function showAllMonths() {
+            const allMonths = getAllStoredMonths();
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(5px);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-radius: 20px;
+                padding: 24px;
+                max-width: 400px;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            `;
+            
+            content.innerHTML = `
+                <h2 style="margin-bottom: 16px; color: #1e293b;">All Months</h2>
+                <div style="display: grid; gap: 10px;">
+                    ${allMonths.map(month => `
+                        <button onclick="switchMonth('${month}'); document.body.removeChild(document.querySelector('[style*=fixed]'))" 
+                                style="padding: 14px; background: ${month === currentMonth ? 'linear-gradient(135deg, #8b5cf6, #6366f1)' : 'rgba(255, 255, 255, 0.8)'}; 
+                                       color: ${month === currentMonth ? 'white' : '#475569'}; border: 1.5px solid ${month === currentMonth ? 'transparent' : 'rgba(203, 213, 225, 0.6)'}; 
+                                       border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; text-align: left;">
+                            ${getMonthDisplay(month)}
+                        </button>
+                    `).join('')}
+                </div>
+                <button onclick="document.body.removeChild(document.querySelector('[style*=fixed]'))" 
+                        style="margin-top: 16px; width: 100%; padding: 14px; background: #e2e8f0; color: #475569; border: none; 
+                               border-radius: 12px; cursor: pointer; font-weight: 600;">
+                    Close
+                </button>
+            `;
+            
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            };
         }
 
         // Switch to different month
@@ -671,17 +828,14 @@
             displaySavingsHistory();
         }
 
-        // Display savings history for last 2 months (excluding current)
+        // Display savings history for all past months (excluding current)
         function displaySavingsHistory() {
             const historyEl = document.getElementById('savingsHistory');
+            const allMonths = getAllStoredMonths();
             const months = [];
             
-            // Get last 3 months data (including current)
-            for (let i = 0; i < 3; i++) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const monthKey = getMonthKey(date);
-                
+            // Get data for all months
+            allMonths.forEach(monthKey => {
                 const key = STORAGE_PREFIX + monthKey;
                 const monthData = localStorage.getItem(key);
                 const data = monthData ? JSON.parse(monthData) : null;
@@ -712,14 +866,17 @@
                         overBudget: totalSpent > budget
                     });
                 }
-            }
+            });
             
             if (months.length === 0) {
                 historyEl.innerHTML = '<div class="empty-state">No savings history yet</div>';
                 return;
             }
             
-            historyEl.innerHTML = months.map(month => `
+            // Show last 5 months in the main view
+            const displayMonths = months.slice(0, 5);
+            
+            historyEl.innerHTML = displayMonths.map(month => `
                 <div class="savings-history-item">
                     <div>
                         <div class="savings-month">${month.display}${month.isCurrent ? ' (Current)' : ''}</div>
@@ -734,6 +891,113 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Add "View All History" button if there are more
+            if (months.length > 5) {
+                historyEl.innerHTML += `
+                    <button onclick="showAllSavingsHistory()" style="margin-top: 10px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                        View All History (${months.length} months)
+                    </button>
+                `;
+            }
+        }
+
+        // Show all savings history
+        function showAllSavingsHistory() {
+            const allMonths = getAllStoredMonths();
+            const months = [];
+            
+            allMonths.forEach(monthKey => {
+                const key = STORAGE_PREFIX + monthKey;
+                const monthData = localStorage.getItem(key);
+                const data = monthData ? JSON.parse(monthData) : null;
+                
+                if (data && data.income > 0) {
+                    const totalSpent = (data.expenses || []).reduce((sum, exp) => sum + exp.amount, 0);
+                    const budget = data.budget || 0;
+                    
+                    let savings, savingsPercent;
+                    if (totalSpent <= budget) {
+                        savings = data.income - budget;
+                        savingsPercent = (savings / data.income) * 100;
+                    } else {
+                        savings = data.income - totalSpent;
+                        savingsPercent = (savings / data.income) * 100;
+                    }
+                    
+                    months.push({
+                        display: getMonthDisplay(monthKey),
+                        income: data.income,
+                        budget: budget,
+                        spent: totalSpent,
+                        savings: savings,
+                        savingsPercent: savingsPercent,
+                        overBudget: totalSpent > budget
+                    });
+                }
+            });
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(5px);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-radius: 20px;
+                padding: 24px;
+                max-width: 500px;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            `;
+            
+            content.innerHTML = `
+                <h2 style="margin-bottom: 16px; color: #1e293b;">Complete Savings History</h2>
+                ${months.map(month => `
+                    <div class="savings-history-item" style="margin-bottom: 10px;">
+                        <div>
+                            <div class="savings-month">${month.display}</div>
+                            <div class="savings-details">
+                                Income: ₹${month.income.toLocaleString('en-IN')} | 
+                                Budget: ₹${month.budget.toLocaleString('en-IN')} | 
+                                Spent: ₹${month.spent.toLocaleString('en-IN')}${month.overBudget ? ' ⚠️' : ''}
+                            </div>
+                        </div>
+                        <div class="savings-percent ${month.savings >= 0 ? 'positive' : 'negative'}">
+                            ${month.savingsPercent >= 0 ? '+' : ''}${month.savingsPercent.toFixed(1)}%
+                        </div>
+                    </div>
+                `).join('')}
+                <button onclick="document.body.removeChild(document.querySelector('[style*=fixed]'))" 
+                        style="margin-top: 16px; width: 100%; padding: 14px; background: #e2e8f0; color: #475569; border: none; 
+                               border-radius: 12px; cursor: pointer; font-weight: 600;">
+                    Close
+                </button>
+            `;
+            
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            };
         }
 
         // Display expense list
@@ -844,6 +1108,103 @@
             data.expenses.splice(index, 1);
             saveData(data);
             loadData();
+        }
+
+        // Export all data
+        function exportData() {
+            const allData = {};
+            
+            // Get month start date setting
+            allData.monthStartDate = getMonthStartDate();
+            
+            // Get all stored months
+            const allMonths = getAllStoredMonths();
+            allData.months = {};
+            
+            allMonths.forEach(monthKey => {
+                const key = STORAGE_PREFIX + monthKey;
+                const monthData = localStorage.getItem(key);
+                if (monthData) {
+                    allData.months[monthKey] = JSON.parse(monthData);
+                }
+            });
+            
+            // Create filename with current date
+            const now = new Date();
+            const filename = `expense-tracker-backup-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}.json`;
+            
+            // Create blob and download
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            alert(`✅ Data exported successfully!\n\nFile: ${filename}\n\nTotal months: ${allMonths.length}`);
+        }
+
+        // Import data
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Confirm before overwriting
+                    const existingMonths = getAllStoredMonths().length;
+                    const importMonths = Object.keys(importedData.months || {}).length;
+                    
+                    const confirmMsg = `This will import ${importMonths} months of data.\n\nExisting data: ${existingMonths} months\n\nDo you want to:\n- MERGE: Keep existing + add imported data\n- REPLACE: Delete all and use only imported data\n\nClick OK to MERGE, Cancel to abort.`;
+                    
+                    const shouldMerge = confirm(confirmMsg);
+                    
+                    if (shouldMerge === null) return; // User cancelled
+                    
+                    if (!shouldMerge) {
+                        // Ask for replace confirmation
+                        if (!confirm('Are you sure you want to REPLACE all existing data?')) {
+                            return;
+                        }
+                        // Clear all existing data
+                        const existingKeys = getAllStoredMonths();
+                        existingKeys.forEach(monthKey => {
+                            localStorage.removeItem(STORAGE_PREFIX + monthKey);
+                        });
+                    }
+                    
+                    // Import month start date
+                    if (importedData.monthStartDate) {
+                        localStorage.setItem(MONTH_START_KEY, importedData.monthStartDate);
+                    }
+                    
+                    // Import all months
+                    Object.keys(importedData.months).forEach(monthKey => {
+                        localStorage.setItem(STORAGE_PREFIX + monthKey, JSON.stringify(importedData.months[monthKey]));
+                    });
+                    
+                    alert(`✅ Import successful!\n\nImported ${importMonths} months of data.`);
+                    
+                    // Reload the app
+                    init();
+                    
+                } catch (error) {
+                    alert('❌ Error importing data. Please make sure you selected a valid backup file.');
+                    console.error('Import error:', error);
+                }
+            };
+            
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
         }
 
         // Initialize on load
