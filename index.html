@@ -614,20 +614,20 @@
                 currentBtn.classList.add('active');
             }
             currentBtn.textContent = '📅 ' + getMonthDisplay(actualCurrentMonth);
-            currentBtn.style.flex = '2';
+            currentBtn.style.flex = '1';
             currentBtn.onclick = () => switchMonth(actualCurrentMonth);
             selector.appendChild(currentBtn);
             
             // Create dropdown for past months
             const dropdown = document.createElement('select');
             dropdown.className = 'month-btn';
-            dropdown.style.cssText = 'flex: 1; cursor: pointer; font-size: 12px; padding: 12px 8px;';
+            dropdown.style.cssText = 'flex: 1; cursor: pointer; font-size: 13px; padding: 12px 10px;';
             
             // If viewing a past month, show which one in dropdown
             if (currentMonth !== actualCurrentMonth) {
                 dropdown.innerHTML = `<option value="">📂 ${getMonthDisplay(currentMonth)}</option>`;
             } else {
-                dropdown.innerHTML = '<option value="">📂 Past Months</option>';
+                dropdown.innerHTML = '<option value="">📂 The Past</option>';
             }
             
             allMonths.forEach((month, index) => {
