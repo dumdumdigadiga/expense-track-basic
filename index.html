@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .budget-display {
+            text-align: center;
+            padding: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .budget-amount {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .budget-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            transition: width 0.3s ease, background 0.3s ease;
+            border-radius: 12px;
+        }
+
+        .progress-fill.warning {
+            background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .progress-fill.danger {
+            background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+        }
+
+        .progress-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .expense-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .expense-info {
+            flex: 1;
+        }
+
+        .expense-description {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .expense-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .expense-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ef4444;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-left: 12px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: #9ca3af;
+        }
+
+        .month-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .month-btn {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .month-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .savings-history-item {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .savings-month {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .savings-percent {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .savings-percent.positive {
+            color: #22c55e;
+        }
+
+        .savings-percent.negative {
+            color: #ef4444;
+        }
+
+        .savings-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h1 style="color: white; font-size: 32px; margin-bottom: 8px;">🙏 Welcome, Ashutosh Bhai!! 🙏</h1>
+            <p style="color: rgba(255,255,255,0.9); font-size: 16px;">Track your expenses smartly</p>
+        </div>
+
+        <div class="card">
+            <h1>💰 Expense Tracker</h1>
+            <p class="subtitle">Manage your monthly budget</p>
+
+            <div class="month-selector" id="monthSelector"></div>
+
+            <div class="budget-display">
+                <div class="budget-label">Remaining Budget</div>
+                <div class="budget-amount" id="remainingBudget">₹0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">0% used</div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Monthly Income</div>
+                    <div class="stat-value" id="monthlyIncome">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Monthly Budget</div>
+                    <div class="stat-value" id="totalBudget">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Spent</div>
+                    <div class="stat-value" id="totalSpent">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Money Saved</div>
+                    <div class="stat-value" id="moneySaved" style="color: #22c55e;">₹0</div>
+                </div>
+            </div>
+
+            <div class="budget-display" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+                <div class="budget-label">Savings This Month</div>
+                <div class="budget-amount" id="savingsPercent">0%</div>
+                <div class="budget-label" style="font-size: 12px; margin-top: 8px;" id="savingsStatus">Set income and budget to track savings</div>
+            </div>
+
+            <div class="input-group">
+                <label for="incomeInput">Monthly Income (₹)</label>
+                <input type="number" id="incomeInput" placeholder="Enter monthly income">
+            </div>
+
+            <div class="input-group">
+                <label for="budgetInput">Set Monthly Budget (₹)</label>
+                <input type="number" id="budgetInput" placeholder="Enter monthly budget">
+            </div>
+
+            <div class="input-group">
+                <label for="monthStartDate">Month starts on day:</label>
+                <select id="monthStartDate" onchange="updateMonthStartDate()">
+                    <option value="1">1st (Calendar month)</option>
+                    <option value="5">5th</option>
+                    <option value="10">10th</option>
+                    <option value="15">15th</option>
+                    <option value="20">20th</option>
+                    <option value="25">25th</option>
+                    <option value="26">26th</option>
+                    <option value="27" selected>27th</option>
+                    <option value="28">28th</option>
+                </select>
+            </div>
+
+            <button onclick="setBudget()">Save Income & Budget</button>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px; color: #333;">Add Expense</h2>
+            
+            <div class="input-group">
+                <label for="expenseDescription">Description</label>
+                <input type="text" id="expenseDescription" placeholder="e.g., Groceries, Transport">
+            </div>
+
+            <div class="input-group">
+                <label for="expenseAmount">Amount (₹)</label>
+                <input type="number" id="expenseAmount" placeholder="Enter amount">
+            </div>
+
+            <button onclick="addExpense()">Add Expense</button>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px; color: #333;">Savings History</h2>
+            <div id="savingsHistory"></div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px; color: #333;">Recent Expenses</h2>
+            <div class="expense-list" id="expenseList">
+                <div class="empty-state">No expenses yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Storage key prefix
+        const STORAGE_PREFIX = 'expenseTracker_';
+        const MONTH_START_KEY = 'expenseTracker_monthStartDate';
+        
+        // Get month start date from settings (default: 27)
+        function getMonthStartDate() {
+            const saved = localStorage.getItem(MONTH_START_KEY);
+            return saved ? parseInt(saved) : 27;
+        }
+
+        // Save month start date
+        function updateMonthStartDate() {
+            const select = document.getElementById('monthStartDate');
+            localStorage.setItem(MONTH_START_KEY, select.value);
+            // Reload everything with new month calculation
+            init();
+        }
+
+        // Get current month key based on custom start date
+        function getMonthKey(date = new Date()) {
+            const monthStartDate = getMonthStartDate();
+            const day = date.getDate();
+            
+            // If current day is before the start date, we're in the previous month cycle
+            let effectiveDate = new Date(date);
+            if (day < monthStartDate) {
+                effectiveDate.setMonth(effectiveDate.getMonth() - 1);
+            }
+            
+            return `${effectiveDate.getFullYear()}-${String(effectiveDate.getMonth() + 1).padStart(2, '0')}-${monthStartDate}`;
+        }
+
+        // Get display name for month
+        function getMonthDisplay(monthKey) {
+            const parts = monthKey.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const startDay = parseInt(parts[2]);
+            
+            // Calculate the date range
+            const startDate = new Date(year, month, startDay);
+            const endDate = new Date(year, month, startDay);
+            endDate.setMonth(endDate.getMonth() + 1);
+            endDate.setDate(endDate.getDate() - 1);
+            
+            const startStr = startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const endStr = endDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+            
+            return `${startStr} - ${endStr}`;
+        }
+
+        // Current active month
+        let currentMonth = getMonthKey();
+
+        // Initialize app
+        function init() {
+            // Set the month start date dropdown
+            const monthStartDate = getMonthStartDate();
+            document.getElementById('monthStartDate').value = monthStartDate;
+            
+            loadMonthSelector();
+            loadData();
+        }
+
+        // Load month selector
+        function loadMonthSelector() {
+            const selector = document.getElementById('monthSelector');
+            selector.innerHTML = '';
+
+            // Get last 3 months
+            const months = [];
+            for (let i = 0; i < 3; i++) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                months.push(getMonthKey(date));
+            }
+
+            months.forEach(month => {
+                const btn = document.createElement('button');
+                btn.className = 'month-btn';
+                btn.textContent = getMonthDisplay(month);
+                if (month === currentMonth) {
+                    btn.classList.add('active');
+                }
+                btn.onclick = () => switchMonth(month);
+                selector.appendChild(btn);
+            });
+        }
+
+        // Switch to different month
+        function switchMonth(month) {
+            currentMonth = month;
+            loadMonthSelector();
+            loadData();
+        }
+
+        // Get data for current month
+        function getData() {
+            const key = STORAGE_PREFIX + currentMonth;
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : { income: 0, budget: 0, expenses: [] };
+        }
+
+        // Save data for current month
+        function saveData(data) {
+            const key = STORAGE_PREFIX + currentMonth;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // Load and display data
+        function loadData() {
+            const data = getData();
+            const income = data.income || 0;
+            const budget = data.budget || 0;
+            const expenses = data.expenses || [];
+
+            const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const remaining = budget - totalSpent;
+            const percentUsed = budget > 0 ? ((totalSpent / budget) * 100) : 0;
+
+            // Calculate savings
+            // Logic: If expenses haven't exceeded budget, savings = Income - Budget
+            //        If expenses exceed budget, savings = Income - Total Spent
+            let actualSavings, savingsPercent;
+            
+            if (totalSpent <= budget) {
+                // Within budget - calculate savings based on budget
+                actualSavings = income - budget;
+                savingsPercent = income > 0 ? ((actualSavings / income) * 100) : 0;
+            } else {
+                // Over budget - calculate savings based on actual spending
+                actualSavings = income - totalSpent;
+                savingsPercent = income > 0 ? ((actualSavings / income) * 100) : 0;
+            }
+
+            // Update display
+            document.getElementById('monthlyIncome').textContent = `₹${income.toLocaleString('en-IN')}`;
+            document.getElementById('totalBudget').textContent = `₹${budget.toLocaleString('en-IN')}`;
+            document.getElementById('totalSpent').textContent = `₹${totalSpent.toLocaleString('en-IN')}`;
+            document.getElementById('remainingBudget').textContent = `₹${remaining.toLocaleString('en-IN')}`;
+            document.getElementById('progressText').textContent = `${percentUsed.toFixed(1)}% used`;
+
+            // Update savings display
+            const moneySavedEl = document.getElementById('moneySaved');
+            const savingsPercentEl = document.getElementById('savingsPercent');
+            const savingsStatusEl = document.getElementById('savingsStatus');
+            
+            moneySavedEl.textContent = `₹${actualSavings.toLocaleString('en-IN')}`;
+            moneySavedEl.style.color = actualSavings >= 0 ? '#22c55e' : '#ef4444';
+            
+            savingsPercentEl.textContent = `${savingsPercent.toFixed(1)}%`;
+            
+            if (income === 0) {
+                savingsStatusEl.textContent = 'Set income and budget to track savings';
+            } else if (totalSpent > budget) {
+                savingsStatusEl.textContent = `⚠️ Over budget by ₹${(totalSpent - budget).toLocaleString('en-IN')}`;
+            } else if (savingsPercent >= 20) {
+                savingsStatusEl.textContent = '🎉 Great savings!';
+            } else if (savingsPercent >= 10) {
+                savingsStatusEl.textContent = '👍 Good savings';
+            } else if (savingsPercent >= 0) {
+                savingsStatusEl.textContent = '💡 Try to save more';
+            } else {
+                savingsStatusEl.textContent = '⚠️ Spending more than income!';
+            }
+
+            // Update progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${Math.min(percentUsed, 100)}%`;
+            progressBar.className = 'progress-fill';
+            if (percentUsed >= 90) {
+                progressBar.classList.add('danger');
+            } else if (percentUsed >= 70) {
+                progressBar.classList.add('warning');
+            }
+
+            // Update input fields
+            document.getElementById('incomeInput').value = income || '';
+            document.getElementById('budgetInput').value = budget || '';
+
+            // Display expenses
+            displayExpenses(expenses);
+            
+            // Display savings history
+            displaySavingsHistory();
+        }
+
+        // Display savings history for last 2 months (excluding current)
+        function displaySavingsHistory() {
+            const historyEl = document.getElementById('savingsHistory');
+            const months = [];
+            
+            // Get last 3 months data (including current)
+            for (let i = 0; i < 3; i++) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const monthKey = getMonthKey(date);
+                
+                const key = STORAGE_PREFIX + monthKey;
+                const monthData = localStorage.getItem(key);
+                const data = monthData ? JSON.parse(monthData) : null;
+                
+                if (data && data.income > 0) {
+                    const totalSpent = (data.expenses || []).reduce((sum, exp) => sum + exp.amount, 0);
+                    const budget = data.budget || 0;
+                    
+                    // Apply same logic: if within budget use (income - budget), else use (income - spent)
+                    let savings, savingsPercent;
+                    if (totalSpent <= budget) {
+                        savings = data.income - budget;
+                        savingsPercent = (savings / data.income) * 100;
+                    } else {
+                        savings = data.income - totalSpent;
+                        savingsPercent = (savings / data.income) * 100;
+                    }
+                    
+                    months.push({
+                        key: monthKey,
+                        display: getMonthDisplay(monthKey),
+                        income: data.income,
+                        budget: budget,
+                        spent: totalSpent,
+                        savings: savings,
+                        savingsPercent: savingsPercent,
+                        isCurrent: monthKey === currentMonth,
+                        overBudget: totalSpent > budget
+                    });
+                }
+            }
+            
+            if (months.length === 0) {
+                historyEl.innerHTML = '<div class="empty-state">No savings history yet</div>';
+                return;
+            }
+            
+            historyEl.innerHTML = months.map(month => `
+                <div class="savings-history-item">
+                    <div>
+                        <div class="savings-month">${month.display}${month.isCurrent ? ' (Current)' : ''}</div>
+                        <div class="savings-details">
+                            Income: ₹${month.income.toLocaleString('en-IN')} | 
+                            Budget: ₹${month.budget.toLocaleString('en-IN')} | 
+                            Spent: ₹${month.spent.toLocaleString('en-IN')}${month.overBudget ? ' ⚠️' : ''}
+                        </div>
+                    </div>
+                    <div class="savings-percent ${month.savings >= 0 ? 'positive' : 'negative'}">
+                        ${month.savingsPercent >= 0 ? '+' : ''}${month.savingsPercent.toFixed(1)}%
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Display expense list
+        function displayExpenses(expenses) {
+            const list = document.getElementById('expenseList');
+            
+            if (expenses.length === 0) {
+                list.innerHTML = '<div class="empty-state">No expenses yet</div>';
+                return;
+            }
+
+            // Sort by date (newest first)
+            expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            list.innerHTML = expenses.map((exp, index) => `
+                <div class="expense-item">
+                    <div class="expense-info">
+                        <div class="expense-description">${exp.description}</div>
+                        <div class="expense-date">${new Date(exp.date).toLocaleDateString('en-IN', { 
+                            day: 'numeric', 
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="expense-amount">₹${exp.amount.toLocaleString('en-IN')}</div>
+                        <button class="delete-btn" onclick="deleteExpense(${index})">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Set budget and income
+        function setBudget() {
+            const incomeInput = document.getElementById('incomeInput');
+            const budgetInput = document.getElementById('budgetInput');
+            const income = parseFloat(incomeInput.value);
+            const budget = parseFloat(budgetInput.value);
+
+            if (isNaN(income) || income <= 0) {
+                alert('Please enter a valid income amount');
+                return;
+            }
+
+            if (isNaN(budget) || budget <= 0) {
+                alert('Please enter a valid budget amount');
+                return;
+            }
+
+            if (budget > income) {
+                if (!confirm('Budget is higher than income. Do you want to continue?')) {
+                    return;
+                }
+            }
+
+            const data = getData();
+            data.income = income;
+            data.budget = budget;
+            saveData(data);
+            loadData();
+        }
+
+        // Add expense
+        function addExpense() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            if (!description) {
+                alert('Please enter expense description');
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            const data = getData();
+            
+            if (!data.income || data.income === 0) {
+                alert('Please set your monthly income first');
+                return;
+            }
+
+            data.expenses.push({
+                description,
+                amount,
+                date: new Date().toISOString()
+            });
+
+            saveData(data);
+            
+            // Clear inputs
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            
+            loadData();
+        }
+
+        // Delete expense
+        function deleteExpense(index) {
+            if (!confirm('Delete this expense?')) {
+                return;
+            }
+
+            const data = getData();
+            data.expenses.splice(index, 1);
+            saveData(data);
+            loadData();
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
